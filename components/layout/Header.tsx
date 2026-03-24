@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Search, LogOut, User, Settings, Menu } from 'lucide-react'
-import { Avatar } from '@/components/ui/Avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
+import { getInitials } from '@/lib/utils/format'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils/cn'
 
@@ -72,7 +73,11 @@ export function Header({ user, onMobileMenuClick }: HeaderProps) {
             onClick={() => setDropdownOpen(v => !v)}
             className="flex items-center gap-2 p-1 rounded-md hover:bg-gray-100 transition-colors"
           >
-            <Avatar name={displayName} size="sm" />
+            <Avatar className="w-7 h-7 text-xs">
+                <AvatarFallback className="bg-green-500 text-white text-xs font-semibold">
+                  {getInitials(displayName)}
+                </AvatarFallback>
+              </Avatar>
             <span className="hidden md:block text-[13px] font-medium text-ef-text max-w-[120px] truncate">
               {displayName}
             </span>

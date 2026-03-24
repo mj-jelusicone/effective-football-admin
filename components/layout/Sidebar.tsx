@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { SidebarGroup } from './SidebarGroup'
 import { SidebarItem } from './SidebarItem'
-import { Avatar } from '@/components/ui/Avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
+import { getInitials } from '@/lib/utils/format'
 import {
   LayoutDashboard, Users, UserCheck, Settings, Shield, Award, Users2, Tag,
   Tent, Dumbbell, ClipboardList, Bell, Calendar,
@@ -126,7 +127,11 @@ export function Sidebar({ user, mobileOpen, onMobileClose }: SidebarProps) {
       {/* User Footer */}
       <div className="border-t border-ef-border p-3 flex-shrink-0">
         <div className="flex items-center gap-2.5 px-1">
-          <Avatar name={displayName} imageUrl={null} size="sm" />
+          <Avatar className="w-7 h-7">
+              <AvatarFallback className="bg-green-500 text-white text-xs font-semibold">
+                {getInitials(displayName)}
+              </AvatarFallback>
+            </Avatar>
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-medium text-ef-text truncate">{displayName}</p>
             <p className="text-[11px] text-ef-muted truncate capitalize">{user.role.replace('_', ' ')}</p>

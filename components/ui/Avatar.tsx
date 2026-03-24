@@ -1,47 +1,49 @@
-import { cn } from '@/lib/utils/cn'
-import { getInitials } from '@/lib/utils/format'
-import Image from 'next/image'
+"use client"
 
-const COLORS = [
-  'bg-green-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500',
-  'bg-pink-500',  'bg-teal-500', 'bg-indigo-500', 'bg-rose-500',
-]
+import * as React from "react"
+import * as AvatarPrimitive from "@radix-ui/react-avatar"
+import { cn } from "@/lib/utils"
 
-function getColorFromName(name: string): string {
-  const hash = name.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
-  return COLORS[hash % COLORS.length]
-}
+const Avatar = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Root
+    ref={ref}
+    className={cn(
+      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
+      className,
+    )}
+    {...props}
+  />
+))
+Avatar.displayName = AvatarPrimitive.Root.displayName
 
-const sizeStyles = {
-  sm: 'w-7 h-7 text-xs',
-  md: 'w-9 h-9 text-sm',
-  lg: 'w-12 h-12 text-base',
-}
+const AvatarImage = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Image>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    className={cn("aspect-square h-full w-full", className)}
+    {...props}
+  />
+))
+AvatarImage.displayName = AvatarPrimitive.Image.displayName
 
-interface AvatarProps {
-  name: string
-  imageUrl?: string | null
-  size?: 'sm' | 'md' | 'lg'
-  className?: string
-}
+const AvatarFallback = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Fallback>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Fallback
+    ref={ref}
+    className={cn(
+      "flex h-full w-full items-center justify-center rounded-full bg-muted",
+      className,
+    )}
+    {...props}
+  />
+))
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
 
-export function Avatar({ name, imageUrl, size = 'md', className }: AvatarProps) {
-  if (imageUrl) {
-    return (
-      <div className={cn('relative rounded-full overflow-hidden flex-shrink-0', sizeStyles[size], className)}>
-        <Image src={imageUrl} alt={name} fill className="object-cover" />
-      </div>
-    )
-  }
-
-  return (
-    <div className={cn(
-      'rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold',
-      sizeStyles[size],
-      getColorFromName(name),
-      className
-    )}>
-      {getInitials(name)}
-    </div>
-  )
-}
+export { Avatar, AvatarImage, AvatarFallback }
