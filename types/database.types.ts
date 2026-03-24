@@ -301,6 +301,134 @@ export type Database = {
         }
         Relationships: []
       }
+      bonus_calculations: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          base_sessions: number
+          bonus_amount: number
+          created_at: string
+          id: string
+          month: string
+          notes: string | null
+          paid_at: string | null
+          status: string
+          total_hours: number
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          base_sessions?: number
+          bonus_amount?: number
+          created_at?: string
+          id?: string
+          month: string
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          total_hours?: number
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          base_sessions?: number
+          bonus_amount?: number
+          created_at?: string
+          id?: string
+          month?: string
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          total_hours?: number
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bonus_calculations_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bonus_calculations_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bonus_rules: {
+        Row: {
+          bonus_amount: number
+          bonus_value: number
+          condition_type: string | null
+          condition_value: number | null
+          created_at: string
+          id: string
+          is_active: boolean
+          is_percentage: boolean
+          name: string | null
+          rule_name: string
+          rule_type: string
+          threshold: number | null
+          trainer_id: string
+          updated_at: string
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          bonus_amount?: number
+          bonus_value?: number
+          condition_type?: string | null
+          condition_value?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_percentage?: boolean
+          name?: string | null
+          rule_name: string
+          rule_type: string
+          threshold?: number | null
+          trainer_id: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          bonus_amount?: number
+          bonus_value?: number
+          condition_type?: string | null
+          condition_value?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_percentage?: boolean
+          name?: string | null
+          rule_name?: string
+          rule_type?: string
+          threshold?: number | null
+          trainer_id?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bonus_rules_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_number: string
@@ -2002,6 +2130,85 @@ export type Database = {
           },
         ]
       }
+      trainer_documents: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          name: string
+          storage_path: string
+          trainer_id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          name: string
+          storage_path: string
+          trainer_id: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          name?: string
+          storage_path?: string
+          trainer_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_documents_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainer_locations: {
+        Row: {
+          created_at: string
+          id: string
+          is_primary: boolean
+          location: string
+          location_name: string | null
+          trainer_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          location: string
+          location_name?: string | null
+          trainer_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          location?: string
+          location_name?: string | null
+          trainer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_locations_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trainer_qualifications: {
         Row: {
           certificate_url: string | null
@@ -2056,65 +2263,224 @@ export type Database = {
           },
         ]
       }
+      trainer_roles: {
+        Row: {
+          created_at: string
+          document_url: string | null
+          expires_at: string | null
+          id: string
+          issued_at: string | null
+          issued_by: string | null
+          role: string | null
+          role_name: string
+          trainer_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_url?: string | null
+          expires_at?: string | null
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          role?: string | null
+          role_name: string
+          trainer_id: string
+        }
+        Update: {
+          created_at?: string
+          document_url?: string | null
+          expires_at?: string | null
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          role?: string | null
+          role_name?: string
+          trainer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_roles_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainer_teams: {
+        Row: {
+          age_group_id: string | null
+          assigned_at: string
+          created_at: string
+          id: string
+          role: string | null
+          team_name: string | null
+          trainer_id: string
+          unassigned_at: string | null
+        }
+        Insert: {
+          age_group_id?: string | null
+          assigned_at?: string
+          created_at?: string
+          id?: string
+          role?: string | null
+          team_name?: string | null
+          trainer_id: string
+          unassigned_at?: string | null
+        }
+        Update: {
+          age_group_id?: string | null
+          assigned_at?: string
+          created_at?: string
+          id?: string
+          role?: string | null
+          team_name?: string | null
+          trainer_id?: string
+          unassigned_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_teams_age_group_id_fkey"
+            columns: ["age_group_id"]
+            isOneToOne: false
+            referencedRelation: "age_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_teams_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trainers: {
         Row: {
+          address_city: string | null
+          address_street: string | null
+          address_zip: string | null
           avatar_url: string | null
           bio: string | null
+          contract_type: string | null
           created_at: string | null
           date_of_birth: string | null
           email: string | null
+          emergency_contact: string | null
           first_name: string
+          gender: string | null
+          guardian_name: string | null
+          guardian_phone: string | null
           hired_at: string | null
           hourly_rate: number | null
+          iban: string | null
           id: string
+          is_active: boolean
           languages: string[] | null
           last_name: string
+          license: string | null
+          license_expires_at: string | null
+          license_issued_at: string | null
+          license_number: string | null
+          next_verification_at: string | null
+          notes: string | null
           phone: string | null
           profile_id: string | null
           specializations: string[] | null
           status: string | null
+          tax_id: string | null
           updated_at: string | null
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
+          address_city?: string | null
+          address_street?: string | null
+          address_zip?: string | null
           avatar_url?: string | null
           bio?: string | null
+          contract_type?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           email?: string | null
+          emergency_contact?: string | null
           first_name: string
+          gender?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
           hired_at?: string | null
           hourly_rate?: number | null
+          iban?: string | null
           id?: string
+          is_active?: boolean
           languages?: string[] | null
           last_name: string
+          license?: string | null
+          license_expires_at?: string | null
+          license_issued_at?: string | null
+          license_number?: string | null
+          next_verification_at?: string | null
+          notes?: string | null
           phone?: string | null
           profile_id?: string | null
           specializations?: string[] | null
           status?: string | null
+          tax_id?: string | null
           updated_at?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
+          address_city?: string | null
+          address_street?: string | null
+          address_zip?: string | null
           avatar_url?: string | null
           bio?: string | null
+          contract_type?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           email?: string | null
+          emergency_contact?: string | null
           first_name?: string
+          gender?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
           hired_at?: string | null
           hourly_rate?: number | null
+          iban?: string | null
           id?: string
+          is_active?: boolean
           languages?: string[] | null
           last_name?: string
+          license?: string | null
+          license_expires_at?: string | null
+          license_issued_at?: string | null
+          license_number?: string | null
+          next_verification_at?: string | null
+          notes?: string | null
           phone?: string | null
           profile_id?: string | null
           specializations?: string[] | null
           status?: string | null
+          tax_id?: string | null
           updated_at?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "trainers_profile_id_fkey"
             columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainers_verified_by_fkey"
+            columns: ["verified_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2178,6 +2544,48 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      verification_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          note: string | null
+          performed_by: string | null
+          trainer_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          performed_by?: string | null
+          trainer_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          performed_by?: string | null
+          trainer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_logs_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "verification_logs_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
             referencedColumns: ["id"]
           },
         ]
@@ -2361,6 +2769,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_upcoming_birthdays: {
+        Args: { days_ahead?: number }
+        Returns: {
+          age_this_year: number
+          avatar_url: string
+          date_of_birth: string
+          days_until: number
+          first_name: string
+          id: string
+          last_name: string
+        }[]
+      }
+      increment_slot_count: { Args: { camp_id: string }; Returns: undefined }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
@@ -2495,4 +2916,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
