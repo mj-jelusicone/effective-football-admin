@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AdminShell } from '@/components/layout/AdminShell'
 import { QueryProvider } from '@/components/layout/QueryProvider'
+import { Toaster } from 'sonner'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -28,6 +29,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminShell user={userProfile}>
         {children}
       </AdminShell>
+      <Toaster position="top-right" richColors />
     </QueryProvider>
   )
 }

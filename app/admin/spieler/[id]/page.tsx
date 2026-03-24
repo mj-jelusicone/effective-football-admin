@@ -1,216 +1,187 @@
 import { createClient } from '@/lib/supabase/server'
-import { PageHeader } from '@/components/ui/PageHeader'
-import { Badge } from '@/components/ui/Badge'
-import { PlayerAvatar } from '@/components/ui/PlayerAvatar'
-import { SpielerEditDrawer } from '@/components/spieler/SpielerEditDrawer'
-import { SpielerDeleteButton } from '@/components/spieler/SpielerDeleteButton'
-import { formatDate, formatDateTime } from '@/lib/utils/format'
 import { notFound } from 'next/navigation'
-import { Mail, Phone, MapPin, User, Calendar, FileText } from 'lucide-react'
+import { Home, Trophy, CheckCircle, TrendingUp } from 'lucide-react'
+import { SpielerProfilHeader } from '@/components/spieler/SpielerProfilHeader'
+import { SpielerProfilTabs } from '@/components/spieler/SpielerProfilTabs'
+import { formatDate } from '@/lib/utils/format'
+import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 
 export default async function SpielerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
 
-  const [{ data: player }, { data: ageGroups }, { data: bookings }, { data: auditLogs }] = await Promise.all([
+  const [{ data: player }, { data: ageGroups }, { data: auditLogs }, { data: bookings }, { data: documents }, { data: attendance }] = await Promise.all([
     supabase
       .from('players')
-      .select('*, age_groups(name, color)')
+      .select(`
+        *,
+        age_groups(id, name, color),
+        enrollments(id, enrollment_type, status, enrolled_at, camps(id, title, start_date, end_date, price))
+      `)
       .eq('id', id)
       .single(),
-    supabase.from('age_groups').select('id, name').eq('is_active', true).order('sort_order'),
+    supabase.from('age_groups').select('id, name, min_age, max_age').eq('is_active', true).order('sort_order'),
+    supabase
+      .from('audit_logs')
+      .select('id, action, user_id, created_at')
+      .eq('table_name', 'players')
+      .eq('record_id', id)
+      .order('created_at', { ascending: false })
+      .limit(50),
     supabase
       .from('bookings')
       .select('id, booking_number, status, final_amount, created_at')
       .eq('player_id', id)
       .order('created_at', { ascending: false })
-      .limit(5),
-    supabase
-      .from('audit_logs')
-      .select('id, action, user_id, created_at, new_data, old_data')
-      .eq('table_name', 'players')
-      .eq('record_id', id)
-      .order('created_at', { ascending: false })
       .limit(10),
+    supabase
+      .from('player_documents')
+      .select('*')
+      .eq('player_id', id)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('attendance')
+      .select('id, status, created_at, training_sessions(id, date, start_time)')
+      .eq('enrollment_id', id)
+      .order('created_at', { ascending: false }),
   ])
 
   if (!player) notFound()
 
-  const fullName = `${player.first_name} ${player.last_name}`
+  const enrollments = (player.enrollments ?? []) as any[]
+  const attendanceList = (attendance ?? []) as any[]
+
+  const campCount = enrollments.filter((e: any) => e.enrollment_type === 'camp' && e.status === 'confirmed').length
+  const trainingCount = enrollments.filter((e: any) => e.enrollment_type === 'training' && e.status === 'confirmed').length
+  const attended = attendanceList.filter((a: any) => a.status === 'present').length
+  const attendancePct = attendanceList.length > 0 ? Math.round((attended / attendanceList.length) * 100) : 0
+
+  const statCards = [
+    { label: 'Camps',       value: campCount,                        icon: Home,        bg: 'bg-green-100',  color: 'text-green-600'  },
+    { label: 'Trainings',   value: trainingCount,                    icon: Trophy,      bg: 'bg-amber-100',  color: 'text-amber-600'  },
+    { label: 'Check-ins',   value: `${attended}/${attendanceList.length}`,icon: CheckCircle,bg: 'bg-blue-100',   color: 'text-blue-600'   },
+    { label: 'Anwesenheit', value: `${attendancePct}%`,              icon: TrendingUp,  bg: 'bg-purple-100', color: 'text-purple-600' },
+  ]
 
   return (
     <div className="p-6">
-      <PageHeader
-        title={fullName}
-        breadcrumbs={[
-          { label: 'Dashboard', href: '/admin/dashboard' },
-          { label: 'Spieler', href: '/admin/spieler' },
-          { label: fullName },
-        ]}
-        actions={
-          <div className="flex items-center gap-2">
-            <SpielerEditDrawer player={player as any} ageGroups={ageGroups ?? []} />
-            <SpielerDeleteButton playerId={player.id} playerName={fullName} />
-          </div>
-        }
-      />
+      {/* Zurück */}
+      <Link
+        href="/admin/spieler"
+        className="inline-flex items-center gap-1 text-sm text-ef-muted hover:text-ef-text transition-colors mb-5"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        Zurück zur Spielerliste
+      </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Linke Spalte */}
-        <div className="space-y-6">
-          {/* Profil-Card */}
-          <div className="bg-white rounded-lg border border-ef-border p-5 text-center">
-            <PlayerAvatar name={fullName} imageUrl={player.avatar_url ?? undefined} size="lg" />
-            <h2 className="mt-3 text-lg font-semibold text-ef-text">{fullName}</h2>
-            {player.position && <p className="text-sm text-ef-muted">{player.position}</p>}
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <Badge variant={player.is_active ? 'green' : 'gray'}>
-                {player.is_active ? 'Aktiv' : 'Inaktiv'}
-              </Badge>
-              {player.age_groups && (
-                <Badge variant="blue">{(player.age_groups as any).name}</Badge>
-              )}
-            </div>
-          </div>
+      {/* Profil Header */}
+      <SpielerProfilHeader player={player as any} ageGroups={ageGroups ?? []} />
 
-          {/* Kontakt-Card */}
-          <div className="bg-white rounded-lg border border-ef-border p-5">
-            <h3 className="text-[15px] font-semibold text-ef-text mb-4">Kontakt</h3>
-            <div className="space-y-3">
-              {player.email && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="w-4 h-4 text-ef-muted flex-shrink-0" />
-                  <a href={`mailto:${player.email}`} className="text-ef-green hover:underline truncate">{player.email}</a>
-                </div>
-              )}
-              {player.phone && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="w-4 h-4 text-ef-muted flex-shrink-0" />
-                  <a href={`tel:${player.phone}`} className="text-ef-text">{player.phone}</a>
-                </div>
-              )}
-              {(player.address_street || player.address_city) && (
-                <div className="flex items-start gap-2 text-sm">
-                  <MapPin className="w-4 h-4 text-ef-muted flex-shrink-0 mt-0.5" />
-                  <div className="text-ef-text">
-                    {player.address_street && <div>{player.address_street}</div>}
-                    {(player.address_zip || player.address_city) && (
-                      <div>{[player.address_zip, player.address_city].filter(Boolean).join(' ')}</div>
-                    )}
-                  </div>
-                </div>
-              )}
-              {player.date_of_birth && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="w-4 h-4 text-ef-muted flex-shrink-0" />
-                  <span className="text-ef-text">{formatDate(player.date_of_birth)}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Erziehungsberechtigter */}
-          {player.guardian_name && (
-            <div className="bg-white rounded-lg border border-ef-border p-5">
-              <h3 className="text-[15px] font-semibold text-ef-text mb-4">Erziehungsberechtigter</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-ef-muted" />
-                  <span className="text-ef-text">{player.guardian_name}</span>
-                </div>
-                {player.guardian_email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-ef-muted" />
-                    <a href={`mailto:${player.guardian_email}`} className="text-ef-green hover:underline">{player.guardian_email}</a>
-                  </div>
-                )}
-                {player.guardian_phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-ef-muted" />
-                    <span className="text-ef-text">{player.guardian_phone}</span>
-                  </div>
-                )}
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {statCards.map(card => {
+          const Icon = card.icon
+          return (
+            <div key={card.label} className="bg-white rounded-xl border border-ef-border p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-ef-muted">{card.label}</p>
+                <p className="text-xl font-bold text-ef-text mt-1">{card.value}</p>
+              </div>
+              <div className={`w-9 h-9 ${card.bg} rounded-lg flex items-center justify-center`}>
+                <Icon className={`w-4 h-4 ${card.color}`} />
               </div>
             </div>
-          )}
+          )
+        })}
+      </div>
+
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Contact */}
+        <div className="space-y-4">
+          <SpielerKontaktCard player={player as any} />
         </div>
 
-        {/* Rechte Spalte */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Notizen */}
-          {player.notes && (
-            <div className="bg-white rounded-lg border border-ef-border p-5">
-              <h3 className="text-[15px] font-semibold text-ef-text mb-3 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-ef-muted" /> Notizen
-              </h3>
-              <p className="text-sm text-ef-text whitespace-pre-wrap">{player.notes}</p>
-            </div>
-          )}
-
-          {/* Letzte Buchungen */}
-          <div className="bg-white rounded-lg border border-ef-border p-5">
-            <h3 className="text-[15px] font-semibold text-ef-text mb-4">Letzte Buchungen</h3>
-            {!bookings || bookings.length === 0 ? (
-              <p className="text-sm text-ef-muted">Keine Buchungen vorhanden.</p>
-            ) : (
-              <div className="space-y-2">
-                {bookings.map(b => (
-                  <div key={b.id} className="flex items-center justify-between py-2 border-b border-ef-border last:border-0">
-                    <div>
-                      <p className="text-sm font-medium text-ef-text">{b.booking_number}</p>
-                      <p className="text-xs text-ef-muted">{b.created_at ? formatDate(b.created_at) : '—'}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-ef-text">
-                        {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(b.final_amount)}
-                      </span>
-                      <Badge variant={
-                        b.status === 'paid' ? 'green' :
-                        b.status === 'cancelled' ? 'red' :
-                        b.status === 'confirmed' ? 'blue' : 'gray'
-                      }>
-                        {b.status === 'paid' ? 'Bezahlt' :
-                         b.status === 'cancelled' ? 'Storniert' :
-                         b.status === 'confirmed' ? 'Bestätigt' :
-                         b.status === 'pending' ? 'Ausstehend' : b.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Audit Log */}
-          <div className="bg-white rounded-lg border border-ef-border p-5">
-            <h3 className="text-[15px] font-semibold text-ef-text mb-4">Änderungsprotokoll</h3>
-            {!auditLogs || auditLogs.length === 0 ? (
-              <p className="text-sm text-ef-muted">Keine Einträge vorhanden.</p>
-            ) : (
-              <div className="space-y-3">
-                {auditLogs.map(log => (
-                  <div key={log.id} className="flex items-start gap-3 text-sm">
-                    <div className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
-                      log.action === 'create' ? 'bg-green-500' :
-                      log.action === 'delete' ? 'bg-red-500' : 'bg-blue-500'
-                    }`} />
-                    <div>
-                      <span className="font-medium text-ef-text capitalize">{
-                        log.action === 'create' ? 'Erstellt' :
-                        log.action === 'update' ? 'Aktualisiert' :
-                        log.action === 'delete' ? 'Gelöscht' : log.action
-                      }</span>
-                      <span className="text-ef-muted ml-2">
-                        {log.created_at ? formatDateTime(log.created_at) : '—'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* Right: Tabs */}
+        <div className="lg:col-span-2">
+          <SpielerProfilTabs
+            playerId={id}
+            enrollments={enrollments}
+            attendance={attendanceList}
+            auditLogs={auditLogs ?? []}
+            bookings={bookings ?? []}
+            documents={documents ?? []}
+          />
         </div>
       </div>
     </div>
+  )
+}
+
+function SpielerKontaktCard({ player }: { player: any }) {
+  const { Mail, Phone, MapPin, Calendar, User, FileText } = require('lucide-react')
+
+  return (
+    <>
+      <div className="bg-white rounded-xl border border-ef-border p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <User className="w-4 h-4 text-ef-muted" />
+          <h3 className="text-[15px] font-semibold text-ef-text">Kontaktinformationen</h3>
+        </div>
+        <div className="space-y-2.5">
+          {player.date_of_birth && (
+            <div className="flex items-center gap-2 text-sm text-ef-text">
+              <Calendar className="w-4 h-4 text-ef-muted flex-shrink-0" />
+              <span>{formatDate(player.date_of_birth)}</span>
+            </div>
+          )}
+          {player.email && (
+            <div className="flex items-center gap-2 text-sm">
+              <Mail className="w-4 h-4 text-ef-muted flex-shrink-0" />
+              <a href={`mailto:${player.email}`} className="text-ef-green hover:underline truncate">{player.email}</a>
+            </div>
+          )}
+          {player.phone && (
+            <div className="flex items-center gap-2 text-sm text-ef-text">
+              <Phone className="w-4 h-4 text-ef-muted flex-shrink-0" />
+              <span>{player.phone}</span>
+            </div>
+          )}
+          {(player.address_street || player.address_city) && (
+            <div className="flex items-start gap-2 text-sm text-ef-text">
+              <MapPin className="w-4 h-4 text-ef-muted flex-shrink-0 mt-0.5" />
+              <div>
+                {player.address_street && <p>{player.address_street}</p>}
+                {(player.address_zip || player.address_city) && (
+                  <p>{[player.address_zip, player.address_city].filter(Boolean).join(' ')}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bemerkungen */}
+      {(player.strong_foot || player.club || player.jersey_number || player.notes) && (
+        <div className="bg-white rounded-xl border border-ef-border p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <FileText className="w-4 h-4 text-ef-muted" />
+            <h3 className="text-[15px] font-semibold text-ef-text">Bemerkungen</h3>
+          </div>
+          <div className="space-y-1.5 text-sm text-ef-text">
+            {player.strong_foot && (
+              <p><span className="text-ef-muted">Starker Fuß:</span> {
+                player.strong_foot === 'both' ? 'BEIDFÜSSIG' :
+                player.strong_foot === 'left' ? 'LINKS' : 'RECHTS'
+              }</p>
+            )}
+            {player.club && <p><span className="text-ef-muted">Verein:</span> {player.club}</p>}
+            {player.jersey_number && <p><span className="text-ef-muted">Trikot:</span> {player.jersey_number}</p>}
+            {player.notes && <p className="mt-2 text-ef-muted italic">{player.notes}</p>}
+          </div>
+        </div>
+      )}
+    </>
   )
 }
