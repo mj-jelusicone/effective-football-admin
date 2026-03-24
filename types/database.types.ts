@@ -1568,6 +1568,50 @@ export type Database = {
           },
         ]
       }
+      player_documents: {
+        Row: {
+          created_at: string | null
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          name: string
+          player_id: string
+          storage_path: string
+          type: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          name: string
+          player_id: string
+          storage_path: string
+          type: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          name?: string
+          player_id?: string
+          storage_path?: string
+          type?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_documents_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       players: {
         Row: {
           address_city: string | null
@@ -1576,6 +1620,7 @@ export type Database = {
           address_zip: string | null
           age_group_id: string | null
           avatar_url: string | null
+          club: string | null
           created_at: string | null
           created_by: string | null
           date_of_birth: string | null
@@ -1587,11 +1632,13 @@ export type Database = {
           guardian_phone: string | null
           id: string
           is_active: boolean
+          jersey_number: number | null
           last_name: string
           notes: string | null
           phone: string | null
           position: string | null
           segment_id: string | null
+          strong_foot: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1601,6 +1648,7 @@ export type Database = {
           address_zip?: string | null
           age_group_id?: string | null
           avatar_url?: string | null
+          club?: string | null
           created_at?: string | null
           created_by?: string | null
           date_of_birth?: string | null
@@ -1612,11 +1660,13 @@ export type Database = {
           guardian_phone?: string | null
           id?: string
           is_active?: boolean
+          jersey_number?: number | null
           last_name: string
           notes?: string | null
           phone?: string | null
           position?: string | null
           segment_id?: string | null
+          strong_foot?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1626,6 +1676,7 @@ export type Database = {
           address_zip?: string | null
           age_group_id?: string | null
           avatar_url?: string | null
+          club?: string | null
           created_at?: string | null
           created_by?: string | null
           date_of_birth?: string | null
@@ -1637,11 +1688,13 @@ export type Database = {
           guardian_phone?: string | null
           id?: string
           is_active?: boolean
+          jersey_number?: number | null
           last_name?: string
           notes?: string | null
           phone?: string | null
           position?: string | null
           segment_id?: string | null
+          strong_foot?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -2442,3 +2495,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
