@@ -22,7 +22,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
       { value: 'trainer_view',    label: 'Trainer ansehen' },
       { value: 'camps_view',      label: 'Camps ansehen' },
       { value: 'buchungen_view',  label: 'Buchungen ansehen' },
-      { value: 'finanzen_view',   label: 'Finanzen ansehen' },
+      { value: 'finanzen_view',   label: 'Finanzen ansehen', critical: true },
       { value: 'rechnungen_view', label: 'Rechnungen ansehen' },
       { value: 'analytics_view',  label: 'Analytics ansehen' },
       { value: 'ressourcen_view', label: 'Ressourcen ansehen' },
@@ -54,19 +54,35 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
   },
 ]
 
-// View → Edit dependencies (activating edit requires view)
-export const EDIT_REQUIRES_VIEW: Partial<Record<Permission, Permission>> = {
-  spieler_edit:    'spieler_view',
-  trainer_edit:    'trainer_view',
-  camps_edit:      'camps_view',
-  camps_create:    'camps_view',
-  camps_delete:    'camps_view',
-  buchungen_edit:  'buchungen_view',
-  finanzen_edit:   'finanzen_view',
-  rechnungen_edit: 'rechnungen_view',
-  ressourcen_edit: 'ressourcen_view',
-  kalender_edit:   'kalender_view',
-  benutzer_edit:   'benutzer_view',
+// Aktivieren: KEY aktiviert → diese müssen AUCH aktiviert sein
+export const PERMISSION_DEPENDENCIES: Partial<Record<Permission, Permission[]>> = {
+  spieler_edit:    ['spieler_view'],
+  trainer_edit:    ['trainer_view'],
+  camps_edit:      ['camps_view'],
+  camps_create:    ['camps_view'],
+  camps_delete:    ['camps_view', 'camps_edit'],
+  buchungen_edit:  ['buchungen_view'],
+  finanzen_edit:   ['finanzen_view'],
+  rechnungen_edit: ['rechnungen_view'],
+  ressourcen_edit: ['ressourcen_view'],
+  kalender_edit:   ['kalender_view'],
+  benutzer_edit:   ['benutzer_view'],
+  rollen_verwalten:['benutzer_view', 'benutzer_edit'],
+}
+
+// Deaktivieren: KEY deaktiviert → diese sollten AUCH deaktiviert werden
+export const PERMISSION_DEPENDENTS: Partial<Record<Permission, Permission[]>> = {
+  spieler_view:    ['spieler_edit'],
+  trainer_view:    ['trainer_edit'],
+  camps_view:      ['camps_edit', 'camps_create', 'camps_delete'],
+  camps_edit:      ['camps_delete'],
+  buchungen_view:  ['buchungen_edit'],
+  finanzen_view:   ['finanzen_edit'],
+  rechnungen_view: ['rechnungen_edit'],
+  ressourcen_view: ['ressourcen_edit'],
+  kalender_view:   ['kalender_edit'],
+  benutzer_view:   ['benutzer_edit', 'rollen_verwalten'],
+  benutzer_edit:   ['rollen_verwalten'],
 }
 
 export const ALL_PERMISSIONS: Permission[] = PERMISSION_GROUPS.flatMap(g => g.permissions.map(p => p.value))

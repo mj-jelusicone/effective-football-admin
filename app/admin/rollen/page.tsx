@@ -5,16 +5,27 @@ import RollenListClient from '@/components/rollen/RollenListClient'
 
 export const dynamic = 'force-dynamic'
 
-export default async function RollenPage() {
+export default async function RollenPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ search?: string; sort?: string }>
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: roles }, { data: templates }] = await Promise.all([
+  const params = await searchParams
+
+  const [{ data: roles }, { data: templates }, { data: auditLogs }] = await Promise.all([
     supabase.from('custom_roles')
       .select('*, custom_role_permissions(permission)')
       .order('priority', { ascending: false }),
     supabase.from('role_templates').select('*').order('sort_order') as any,
+    supabase.from('audit_logs')
+      .select('*, profiles:user_id(full_name, email)')
+      .eq('table_name', 'custom_roles')
+      .order('created_at', { ascending: false })
+      .limit(10),
   ])
 
   // Add user counts
@@ -22,12 +33,6 @@ export default async function RollenPage() {
     const { count } = await supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('custom_role_id', r.id)
     return { ...r, user_count: count ?? 0 }
   }))
-
-  const stats = {
-    total:  rolesWithCounts.length,
-    active: rolesWithCounts.filter(r => r.is_active).length,
-    system: rolesWithCounts.filter(r => r.is_system).length,
-  }
 
   return (
     <div className="min-h-screen bg-ef-main">
@@ -39,7 +44,7 @@ export default async function RollenPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-ef-text">Rollenverwaltung</h1>
-            <p className="text-sm text-ef-muted">Berechtigungen und benutzerdefinierte Rollen verwalten</p>
+            <p className="text-sm text-ef-muted">Benutzerdefinierte Rollen mit granularen Berechtigungen</p>
           </div>
         </div>
       </div>
@@ -47,8 +52,10 @@ export default async function RollenPage() {
       <RollenListClient
         initialRoles={rolesWithCounts as any}
         templates={(templates ?? []) as any}
-        stats={stats}
-        currentUserId={user.id} />
+        auditLogs={(auditLogs ?? []) as any}
+        currentUserId={user.id}
+        initialSearch={params.search ?? ''}
+        initialSort={params.sort ?? 'priority'} />
     </div>
   )
 }

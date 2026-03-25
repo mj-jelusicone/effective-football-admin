@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { Shield, Plus, GitCompare, Upload, Download, Search } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Shield, Plus, GitCompare, Upload, Download, Search, Clock, Edit2, Trash2 } from 'lucide-react'
+import { useRouter, usePathname } from 'next/navigation'
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent
 } from '@dnd-kit/core'
@@ -9,6 +10,8 @@ import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-ki
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
+import { de } from 'date-fns/locale'
+import { formatDistanceToNow } from 'date-fns'
 import RolleCard from './RolleCard'
 import RolleModal from './RolleModal'
 import RollenVergleichModal from './RollenVergleichModal'
@@ -21,18 +24,31 @@ interface CustomRole {
   user_count?: number
 }
 interface RoleTemplate { id: string; name: string; description: string; color: string; permissions: string[] }
+interface AuditLog {
+  id: string; action: string; created_at: string; record_id: string
+  new_data: Record<string, unknown> | null
+  profiles: { full_name: string | null; email: string } | null
+}
 
 interface Props {
   initialRoles: CustomRole[]
   templates: RoleTemplate[]
-  stats: { total: number; active: number; system: number }
+  auditLogs: AuditLog[]
   currentUserId: string
+  initialSearch: string
+  initialSort: string
 }
 
-export default function RollenListClient({ initialRoles, templates, stats, currentUserId }: Props) {
+export default function RollenListClient({
+  initialRoles, templates, auditLogs, currentUserId, initialSearch, initialSort
+}: Props) {
   const supabase = createClient()
+  const router = useRouter()
+  const pathname = usePathname()
+
   const [roles, setRoles] = useState(initialRoles)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(initialSearch)
+  const [sort, setSort] = useState(initialSort)
   const [showModal, setShowModal] = useState(false)
   const [editRole, setEditRole] = useState<CustomRole | null>(null)
   const [showVergleich, setShowVergleich] = useState(false)
@@ -40,10 +56,27 @@ export default function RollenListClient({ initialRoles, templates, stats, curre
 
   const sensors = useSensors(useSensor(PointerSensor))
 
-  const filtered = roles.filter(r =>
-    r.name.toLowerCase().includes(search.toLowerCase()) ||
-    (r.description ?? '').toLowerCase().includes(search.toLowerCase())
-  )
+  // URL-sync für Suche/Sort
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (search) params.set('search', search)
+    if (sort !== 'priority') params.set('sort', sort)
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname)
+  }, [search, sort])
+
+  // Filtern + Sortieren
+  const filtered = roles
+    .filter(r =>
+      r.name.toLowerCase().includes(search.toLowerCase()) ||
+      (r.description ?? '').toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sort === 'name')     return a.name.localeCompare(b.name)
+      if (sort === 'users')    return (b.user_count ?? 0) - (a.user_count ?? 0)
+      if (sort === 'created')  return 0
+      return b.priority - a.priority  // default: priority
+    })
 
   async function reload() {
     const { data } = await supabase.from('custom_roles')
@@ -51,7 +84,7 @@ export default function RollenListClient({ initialRoles, templates, stats, curre
       .order('priority', { ascending: false })
     if (data) {
       const withCounts = await Promise.all(data.map(async r => {
-        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('custom_role_id', r.id)
+        const { count } = await supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('custom_role_id', r.id)
         return { ...r, user_count: count ?? 0 }
       }))
       setRoles(withCounts)
@@ -74,7 +107,7 @@ export default function RollenListClient({ initialRoles, templates, stats, curre
 
   async function handleDuplicate(role: CustomRole) {
     const { data: dup } = await supabase.from('custom_roles').insert({
-      name: `${role.name} (Kopie)`, description: role.description, color: role.color,
+      name: `Kopie von ${role.name}`, description: role.description, color: role.color,
       priority: Math.max(1, role.priority - 5), is_active: false, created_by: currentUserId
     }).select().single()
     if (dup && role.custom_role_permissions.length > 0) {
@@ -82,18 +115,22 @@ export default function RollenListClient({ initialRoles, templates, stats, curre
         role.custom_role_permissions.map(p => ({ role_id: dup.id, permission: p.permission }))
       )
     }
-    toast.success('Rolle dupliziert (inaktiv)')
+    toast.success(`"Kopie von ${role.name}" erstellt (inaktiv)`)
     reload()
   }
 
   async function handleDelete(role: CustomRole) {
-    const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('custom_role_id', role.id)
+    const { count } = await supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('custom_role_id', role.id)
     if ((count ?? 0) > 0) {
       toast.error(`${count} Benutzer haben diese Rolle — bitte zuerst entfernen`)
       return
     }
     if (!confirm(`Rolle "${role.name}" wirklich löschen?`)) return
     await supabase.from('custom_roles').delete().eq('id', role.id)
+    await supabase.from('audit_logs').insert({
+      user_id: currentUserId, action: 'delete', table_name: 'custom_roles', record_id: role.id,
+      old_data: { name: role.name }
+    })
     toast.success('Rolle gelöscht')
     reload()
   }
@@ -140,14 +177,28 @@ export default function RollenListClient({ initialRoles, templates, stats, curre
     }
   }
 
+  function getAuditIcon(action: string) {
+    if (action === 'create') return <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">+</span>
+    if (action === 'delete') return <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xs"><Trash2 className="w-3 h-3" /></span>
+    return <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs"><Edit2 className="w-3 h-3" /></span>
+  }
+
+  function getAuditText(log: AuditLog) {
+    const who = log.profiles?.full_name ?? log.profiles?.email ?? 'Jemand'
+    const roleName = (log.new_data as any)?.name ?? log.record_id.slice(0, 8)
+    if (log.action === 'create') return `${who} hat Rolle "${roleName}" erstellt`
+    if (log.action === 'delete') return `${who} hat eine Rolle gelöscht`
+    return `${who} hat Rolle "${roleName}" bearbeitet`
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Stat Cards */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Gesamt', value: roles.length, color: 'text-blue-500', bg: 'bg-blue-50' },
-          { label: 'Aktiv', value: roles.filter(r => r.is_active).length, color: 'text-green-500', bg: 'bg-green-50' },
-          { label: 'System', value: roles.filter(r => r.is_system).length, color: 'text-amber-500', bg: 'bg-amber-50' },
+          { label: 'Aktive Rollen', value: roles.filter(r => r.is_active).length, color: 'text-purple-500', bg: 'bg-purple-100' },
+          { label: 'Gesamt Rollen', value: roles.length,                           color: 'text-blue-500',   bg: 'bg-blue-100'   },
+          { label: 'Benutzer m. Rolle', value: roles.reduce((s, r) => s + (r.user_count ?? 0), 0), color: 'text-green-500', bg: 'bg-green-100' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-xl border border-ef-border p-4 flex items-center gap-3">
             <div className={`w-10 h-10 rounded-lg ${s.bg} flex items-center justify-center`}>
@@ -163,12 +214,19 @@ export default function RollenListClient({ initialRoles, templates, stats, curre
 
       {/* Toolbar */}
       <div className="flex items-center gap-3">
-        <div className="relative flex-1">
+        <div className="relative w-64">
           <Search className="absolute left-3 top-2.5 w-4 h-4 text-ef-muted" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Rollen suchen..."
             className="w-full h-9 pl-9 pr-3 border border-ef-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ef-green" />
         </div>
+        <select value={sort} onChange={e => setSort(e.target.value)}
+          className="h-9 px-3 border border-ef-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ef-green">
+          <option value="priority">Priorität ↓</option>
+          <option value="name">Name A–Z</option>
+          <option value="users">Benutzer</option>
+        </select>
+        <div className="flex-1" />
         <button onClick={() => setShowVergleich(true)}
           className="h-9 px-3 border border-ef-border rounded-md text-sm flex items-center gap-2 hover:bg-gray-50">
           <GitCompare className="w-4 h-4" /> Vergleichen
@@ -179,15 +237,16 @@ export default function RollenListClient({ initialRoles, templates, stats, curre
         </button>
         <label className="h-9 px-3 border border-ef-border rounded-md text-sm flex items-center gap-2 hover:bg-gray-50 cursor-pointer">
           <Upload className="w-4 h-4" /> Import
-          <input type="file" accept=".json" className="hidden" onChange={e => e.target.files?.[0] && importRoles(e.target.files[0])} />
+          <input type="file" accept=".json" className="hidden"
+            onChange={e => e.target.files?.[0] && importRoles(e.target.files[0])} />
         </label>
         <button onClick={() => { setEditRole(null); setShowModal(true) }}
-          className="h-9 px-4 bg-ef-green text-white text-sm rounded-md hover:bg-ef-green-dark font-medium flex items-center gap-2">
+          className="h-9 px-4 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 font-medium flex items-center gap-2">
           <Plus className="w-4 h-4" /> Neue Rolle
         </button>
       </div>
 
-      {/* Role Cards mit DnD */}
+      {/* Role Cards */}
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-ef-muted">
           <Shield className="w-12 h-12 mx-auto mb-3 text-gray-200" />
@@ -207,6 +266,29 @@ export default function RollenListClient({ initialRoles, templates, stats, curre
             </div>
           </SortableContext>
         </DndContext>
+      )}
+
+      {/* Audit Log Sektion */}
+      {auditLogs.length > 0 && (
+        <div className="bg-white rounded-xl border border-ef-border p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="w-4 h-4 text-ef-muted" />
+            <h2 className="text-sm font-semibold text-ef-text">Letzte Änderungen</h2>
+          </div>
+          <div className="space-y-3">
+            {auditLogs.map(log => (
+              <div key={log.id} className="flex items-start gap-3">
+                {getAuditIcon(log.action)}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-ef-text">{getAuditText(log)}</p>
+                  <p className="text-xs text-ef-muted mt-0.5">
+                    {formatDistanceToNow(new Date(log.created_at), { locale: de, addSuffix: true })}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Modals */}
