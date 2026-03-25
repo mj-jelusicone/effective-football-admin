@@ -372,11 +372,11 @@ export function TrainerWizardModal({ open, trainer, onClose }: Props) {
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className={LABEL_CLS}>Erziehungsberechtigter (Name)</label>
+                  <label className={LABEL_CLS}>Notfallkontakt (Name)</label>
                   <input value={formData.guardian_name} onChange={e => set('guardian_name', e.target.value)} className={INPUT_CLS} />
                 </div>
                 <div className="col-span-2">
-                  <label className={LABEL_CLS}>Erziehungsberechtigter (Telefon)</label>
+                  <label className={LABEL_CLS}>Notfallkontakt (Telefon)</label>
                   <input type="tel" value={formData.guardian_phone} onChange={e => set('guardian_phone', e.target.value)} className={INPUT_CLS} />
                 </div>
               </div>

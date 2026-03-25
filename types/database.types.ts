@@ -1233,6 +1233,45 @@ export type Database = {
           },
         ]
       }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          personal_message: string | null
+          revoked_at: string | null
+          role: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          personal_message?: string | null
+          revoked_at?: string | null
+          role?: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          personal_message?: string | null
+          revoked_at?: string | null
+          role?: string
+          token?: string
+        }
+        Relationships: []
+      }
       invoice_items: {
         Row: {
           description: string
@@ -1845,11 +1884,15 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          ban_reason: string | null
+          banned_at: string | null
           created_at: string | null
           email: string
           full_name: string | null
           id: string
+          invited_by: string | null
           is_active: boolean
+          is_banned: boolean
           last_login_at: string | null
           phone: string | null
           role: string
@@ -1857,11 +1900,15 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
           created_at?: string | null
           email: string
           full_name?: string | null
           id: string
+          invited_by?: string | null
           is_active?: boolean
+          is_banned?: boolean
           last_login_at?: string | null
           phone?: string | null
           role?: string
@@ -1869,11 +1916,15 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
           created_at?: string | null
           email?: string
           full_name?: string | null
           id?: string
+          invited_by?: string | null
           is_active?: boolean
+          is_banned?: boolean
           last_login_at?: string | null
           phone?: string | null
           role?: string
@@ -2050,6 +2101,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      role_permissions: {
+        Row: {
+          can_delete: boolean | null
+          can_export: boolean | null
+          can_read: boolean | null
+          can_write: boolean | null
+          id: string
+          resource: string
+          role: string
+        }
+        Insert: {
+          can_delete?: boolean | null
+          can_export?: boolean | null
+          can_read?: boolean | null
+          can_write?: boolean | null
+          id?: string
+          resource: string
+          role: string
+        }
+        Update: {
+          can_delete?: boolean | null
+          can_export?: boolean | null
+          can_read?: boolean | null
+          can_write?: boolean | null
+          id?: string
+          resource?: string
+          role?: string
+        }
+        Relationships: []
       }
       system_settings: {
         Row: {
@@ -2544,6 +2625,47 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_player_links: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_primary: boolean | null
+          link_type: string
+          notes: string | null
+          player_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_primary?: boolean | null
+          link_type: string
+          notes?: string | null
+          player_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_primary?: boolean | null
+          link_type?: string
+          notes?: string | null
+          player_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_player_links_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
             referencedColumns: ["id"]
           },
         ]

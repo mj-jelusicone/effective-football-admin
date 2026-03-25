@@ -56,7 +56,7 @@ export function TrainerKontaktCard({ trainer }: Props) {
         )}
         {(trainer.guardian_name || trainer.guardian_phone) && (
           <div className="pt-2 border-t border-ef-border">
-            <p className="text-xs text-ef-muted mb-1">Erziehungsberechtigter</p>
+            <p className="text-xs text-ef-muted mb-1">Notfallkontakt</p>
             {trainer.guardian_name && <p className="text-sm text-ef-text">{trainer.guardian_name}</p>}
             {trainer.guardian_phone && <p className="text-sm text-ef-muted">{trainer.guardian_phone}</p>}
           </div>
