@@ -16,40 +16,55 @@ export type Database = {
     Tables: {
       age_groups: {
         Row: {
+          camp_key: string | null
           color: string | null
           created_at: string | null
           description: string | null
+          display_label: string | null
           id: string
           is_active: boolean | null
           max_age: number | null
           min_age: number | null
           name: string
           sort_order: number | null
+          u_category: string | null
           updated_at: string | null
+          year_offset: number
+          youth_category: string | null
         }
         Insert: {
+          camp_key?: string | null
           color?: string | null
           created_at?: string | null
           description?: string | null
+          display_label?: string | null
           id?: string
           is_active?: boolean | null
           max_age?: number | null
           min_age?: number | null
           name: string
           sort_order?: number | null
+          u_category?: string | null
           updated_at?: string | null
+          year_offset?: number
+          youth_category?: string | null
         }
         Update: {
+          camp_key?: string | null
           color?: string | null
           created_at?: string | null
           description?: string | null
+          display_label?: string | null
           id?: string
           is_active?: boolean | null
           max_age?: number | null
           min_age?: number | null
           name?: string
           sort_order?: number | null
+          u_category?: string | null
           updated_at?: string | null
+          year_offset?: number
+          youth_category?: string | null
         }
         Relationships: []
       }
@@ -2010,6 +2025,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      qualification_check_runs: {
+        Row: {
+          created_at: string | null
+          expired_count: number
+          expiring_30_count: number
+          expiring_60_count: number
+          expiring_90_count: number
+          id: string
+          notifications_sent: number
+          overdue_count: number
+          report_data: Json | null
+          run_at: string | null
+          run_by: string | null
+          total_checked: number
+          triggered_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expired_count?: number
+          expiring_30_count?: number
+          expiring_60_count?: number
+          expiring_90_count?: number
+          id?: string
+          notifications_sent?: number
+          overdue_count?: number
+          report_data?: Json | null
+          run_at?: string | null
+          run_by?: string | null
+          total_checked?: number
+          triggered_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expired_count?: number
+          expiring_30_count?: number
+          expiring_60_count?: number
+          expiring_90_count?: number
+          id?: string
+          notifications_sent?: number
+          overdue_count?: number
+          report_data?: Json | null
+          run_at?: string | null
+          run_by?: string | null
+          total_checked?: number
+          triggered_by?: string | null
+        }
+        Relationships: []
       }
       qualification_types: {
         Row: {

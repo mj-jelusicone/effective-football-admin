@@ -29,7 +29,7 @@ export default async function QualifikationenPage({
         )
       `)
       .eq('status', 'active'),
-    (supabase as any)
+    supabase
       .from('qualification_check_runs')
       .select('*')
       .order('run_at', { ascending: false })
