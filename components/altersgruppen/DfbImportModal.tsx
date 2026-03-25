@@ -32,9 +32,10 @@ export default function DfbImportModal({ onClose, onImported }: Props) {
   async function importGroups() {
     setImporting(true)
     let imported = 0
+    const errors: string[] = []
     for (const g of toImport) {
       const key = generateCampKey(g.youth_category, g.u_category)
-      await supabase.from('age_groups').insert({
+      const { error } = await supabase.from('age_groups').insert({
         name:           `${g.youth_category} ${g.u_category}`,
         youth_category: g.youth_category,
         u_category:     g.u_category,
@@ -46,12 +47,22 @@ export default function DfbImportModal({ onClose, onImported }: Props) {
         is_active:      true,
         color:          '#3B82F6',
       })
-      imported++
+      if (error) {
+        console.error('DFB insert error:', key, error)
+        errors.push(`${key}: ${error.message}`)
+      } else {
+        imported++
+      }
     }
-    await supabase.from('system_settings')
-      .update({ value: 'true' })
-      .eq('key', 'dfb_import_done')
-    toast.success(`${imported} DFB-Standardgruppen importiert`)
+    if (errors.length > 0) {
+      toast.error(`${errors.length} Fehler beim Import. Details in der Konsole.`)
+    }
+    if (imported > 0) {
+      await supabase.from('system_settings')
+        .update({ value: 'true' })
+        .eq('key', 'dfb_import_done')
+      toast.success(`${imported} DFB-Standardgruppen importiert`)
+    }
     setImporting(false)
     onImported()
   }

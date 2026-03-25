@@ -68,6 +68,11 @@ export default function AltersgruppenListClient({
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
+  // Sync when server re-runs (router.refresh()) passes updated initialGroups
+  useEffect(() => {
+    setGroups(initialGroups)
+  }, [initialGroups])
+
   // URL sync
   useEffect(() => {
     const p = new URLSearchParams()
@@ -79,7 +84,14 @@ export default function AltersgruppenListClient({
   }, [search, filter, category])
 
   async function reload() {
-    const { data } = await supabase.from('age_groups').select('*').order('sort_order', { ascending: false })
+    // router.refresh() re-runs the server page → passes fresh initialGroups → useEffect above syncs it
+    router.refresh()
+    // Also update client state directly as fallback
+    const { data, error } = await supabase.from('age_groups').select('*').order('sort_order', { ascending: false })
+    if (error) {
+      console.error('reload age_groups error:', error)
+      return
+    }
     if (data) setGroups(data as AgeGroup[])
   }
 
