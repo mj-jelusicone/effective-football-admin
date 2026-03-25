@@ -860,6 +860,74 @@ export type Database = {
           },
         ]
       }
+      custom_role_permissions: {
+        Row: {
+          created_at: string | null
+          id: string
+          permission: string
+          role_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          permission: string
+          role_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          permission?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_roles: {
+        Row: {
+          color: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          name: string
+          priority: number
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name: string
+          priority?: number
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name?: string
+          priority?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       customer_segments: {
         Row: {
           color: string | null
@@ -1887,6 +1955,7 @@ export type Database = {
           ban_reason: string | null
           banned_at: string | null
           created_at: string | null
+          custom_role_id: string | null
           email: string
           full_name: string | null
           id: string
@@ -1903,6 +1972,7 @@ export type Database = {
           ban_reason?: string | null
           banned_at?: string | null
           created_at?: string | null
+          custom_role_id?: string | null
           email: string
           full_name?: string | null
           id: string
@@ -1919,6 +1989,7 @@ export type Database = {
           ban_reason?: string | null
           banned_at?: string | null
           created_at?: string | null
+          custom_role_id?: string | null
           email?: string
           full_name?: string | null
           id?: string
@@ -1930,7 +2001,15 @@ export type Database = {
           role?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_custom_role_id_fkey"
+            columns: ["custom_role_id"]
+            isOneToOne: false
+            referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       qualification_types: {
         Row: {
@@ -2129,6 +2208,36 @@ export type Database = {
           id?: string
           resource?: string
           role?: string
+        }
+        Relationships: []
+      }
+      role_templates: {
+        Row: {
+          color: string | null
+          description: string | null
+          id: string
+          is_builtin: boolean | null
+          name: string
+          permissions: string[]
+          sort_order: number | null
+        }
+        Insert: {
+          color?: string | null
+          description?: string | null
+          id?: string
+          is_builtin?: boolean | null
+          name: string
+          permissions: string[]
+          sort_order?: number | null
+        }
+        Update: {
+          color?: string | null
+          description?: string | null
+          id?: string
+          is_builtin?: boolean | null
+          name?: string
+          permissions?: string[]
+          sort_order?: number | null
         }
         Relationships: []
       }
