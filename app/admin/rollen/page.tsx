@@ -10,19 +10,16 @@ export default async function RollenPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: roles }, { data: templates }, { data: profile }] = await Promise.all([
+  const [{ data: roles }, { data: templates }] = await Promise.all([
     supabase.from('custom_roles')
       .select('*, custom_role_permissions(permission)')
       .order('priority', { ascending: false }),
     supabase.from('role_templates').select('*').order('sort_order') as any,
-    supabase.from('profiles').select('role').eq('id', user.id).single(),
   ])
-
-  if (!['admin', 'super_admin'].includes(profile?.role ?? '')) redirect('/admin/dashboard')
 
   // Add user counts
   const rolesWithCounts = await Promise.all((roles ?? []).map(async r => {
-    const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('custom_role_id', r.id)
+    const { count } = await supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('custom_role_id', r.id)
     return { ...r, user_count: count ?? 0 }
   }))
 
