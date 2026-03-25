@@ -1,8 +1,6 @@
 import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function POST(req: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -10,6 +8,7 @@ export async function POST(req: Request) {
 
   const { email, message, role, inviterName } = await req.json()
 
+  const resend = new Resend(process.env.RESEND_API_KEY)
   await resend.emails.send({
     from: 'Effective Football <noreply@effective.football>',
     to: email,
