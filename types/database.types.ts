@@ -555,6 +555,198 @@ export type Database = {
         }
         Relationships: []
       }
+      camp_addons: {
+        Row: {
+          camp_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_available: boolean | null
+          name: string
+          price_gross: number | null
+          price_input_mode: string | null
+          price_net: number | null
+          sort_order: number | null
+          vat_rate: number | null
+        }
+        Insert: {
+          camp_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_available?: boolean | null
+          name: string
+          price_gross?: number | null
+          price_input_mode?: string | null
+          price_net?: number | null
+          sort_order?: number | null
+          vat_rate?: number | null
+        }
+        Update: {
+          camp_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_available?: boolean | null
+          name?: string
+          price_gross?: number | null
+          price_input_mode?: string | null
+          price_net?: number | null
+          sort_order?: number | null
+          vat_rate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "camp_addons_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "camps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      camp_age_groups: {
+        Row: {
+          age_group_id: string
+          camp_id: string
+          id: string
+        }
+        Insert: {
+          age_group_id: string
+          camp_id: string
+          id?: string
+        }
+        Update: {
+          age_group_id?: string
+          camp_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "camp_age_groups_age_group_id_fkey"
+            columns: ["age_group_id"]
+            isOneToOne: false
+            referencedRelation: "age_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "camp_age_groups_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "camps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      camp_day_times: {
+        Row: {
+          camp_id: string
+          care_from: string | null
+          care_until: string | null
+          date: string
+          day_number: number
+          end_time: string
+          id: string
+          notes: string | null
+          start_time: string
+        }
+        Insert: {
+          camp_id: string
+          care_from?: string | null
+          care_until?: string | null
+          date: string
+          day_number: number
+          end_time?: string
+          id?: string
+          notes?: string | null
+          start_time?: string
+        }
+        Update: {
+          camp_id?: string
+          care_from?: string | null
+          care_until?: string | null
+          date?: string
+          day_number?: number
+          end_time?: string
+          id?: string
+          notes?: string | null
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "camp_day_times_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "camps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      camp_images: {
+        Row: {
+          alt_text: string | null
+          camp_id: string
+          created_at: string | null
+          file_size: number | null
+          id: string
+          is_main: boolean | null
+          sort_order: number | null
+          storage_path: string
+        }
+        Insert: {
+          alt_text?: string | null
+          camp_id: string
+          created_at?: string | null
+          file_size?: number | null
+          id?: string
+          is_main?: boolean | null
+          sort_order?: number | null
+          storage_path: string
+        }
+        Update: {
+          alt_text?: string | null
+          camp_id?: string
+          created_at?: string | null
+          file_size?: number | null
+          id?: string
+          is_main?: boolean | null
+          sort_order?: number | null
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "camp_images_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "camps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      camp_saved_filters: {
+        Row: {
+          created_at: string | null
+          filter_data: Json
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          filter_data: Json
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          filter_data?: Json
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       camp_slots: {
         Row: {
           booked_count: number
@@ -602,6 +794,88 @@ export type Database = {
           {
             foreignKeyName: "camp_slots_camp_id_fkey"
             columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "camps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      camp_status_logs: {
+        Row: {
+          camp_id: string
+          changed_at: string | null
+          changed_by: string | null
+          id: string
+          new_status: string
+          old_status: string | null
+          reason: string | null
+          triggered_by: string | null
+        }
+        Insert: {
+          camp_id: string
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          new_status: string
+          old_status?: string | null
+          reason?: string | null
+          triggered_by?: string | null
+        }
+        Update: {
+          camp_id?: string
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          new_status?: string
+          old_status?: string | null
+          reason?: string | null
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "camp_status_logs_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "camps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      camp_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          source_camp_id: string | null
+          template_data: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          source_camp_id?: string | null
+          template_data: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          source_camp_id?: string | null
+          template_data?: Json
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "camp_templates_source_camp_id_fkey"
+            columns: ["source_camp_id"]
             isOneToOne: false
             referencedRelation: "camps"
             referencedColumns: ["id"]
@@ -728,19 +1002,31 @@ export type Database = {
           created_by: string | null
           description: string | null
           end_date: string | null
+          gender: string | null
           id: string
           image_url: string | null
+          includes_accommodation: boolean | null
+          includes_catering: boolean | null
           is_featured: boolean | null
+          lat: number | null
+          lng: number | null
           location_id: string | null
           max_age: number | null
           min_age: number | null
+          min_participants: number | null
+          notes: string | null
+          partner_location: string | null
           price: number | null
+          price_gross: number | null
+          price_input_mode: string | null
+          price_net: number | null
           price_type: string | null
           slug: string | null
           start_date: string | null
           status: string | null
           title: string
           updated_at: string | null
+          vat_rate: number | null
         }
         Insert: {
           age_group_id?: string | null
@@ -750,19 +1036,31 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           end_date?: string | null
+          gender?: string | null
           id?: string
           image_url?: string | null
+          includes_accommodation?: boolean | null
+          includes_catering?: boolean | null
           is_featured?: boolean | null
+          lat?: number | null
+          lng?: number | null
           location_id?: string | null
           max_age?: number | null
           min_age?: number | null
+          min_participants?: number | null
+          notes?: string | null
+          partner_location?: string | null
           price?: number | null
+          price_gross?: number | null
+          price_input_mode?: string | null
+          price_net?: number | null
           price_type?: string | null
           slug?: string | null
           start_date?: string | null
           status?: string | null
           title: string
           updated_at?: string | null
+          vat_rate?: number | null
         }
         Update: {
           age_group_id?: string | null
@@ -772,19 +1070,31 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           end_date?: string | null
+          gender?: string | null
           id?: string
           image_url?: string | null
+          includes_accommodation?: boolean | null
+          includes_catering?: boolean | null
           is_featured?: boolean | null
+          lat?: number | null
+          lng?: number | null
           location_id?: string | null
           max_age?: number | null
           min_age?: number | null
+          min_participants?: number | null
+          notes?: string | null
+          partner_location?: string | null
           price?: number | null
+          price_gross?: number | null
+          price_input_mode?: string | null
+          price_net?: number | null
           price_type?: string | null
           slug?: string | null
           start_date?: string | null
           status?: string | null
           title?: string
           updated_at?: string | null
+          vat_rate?: number | null
         }
         Relationships: [
           {
